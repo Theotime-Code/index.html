@@ -6,60 +6,105 @@
     <title>STRATOS | AI Shadow-Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --bg-color: #020617; --text-main: #F8FAFC; --accent-color: #06B6D4; --border-color: #1E293B; }
-        body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Inter', sans-serif; }
-        .card { background-color: #0F172A; border: 2px solid var(--border-color); border-radius: 16px; }
-        .btn-primary { background-color: var(--accent-color); color: #000000; font-weight: 900; cursor: pointer; }
-        .glow-text { text-shadow: 0 0 15px rgba(6, 182, 212, 0.5); }
+        :root {
+            --bg-color: #020617;
+            --text-main: #F8FAFC;
+            --accent-color: #06B6D4;
+            --border-color: #1E293B;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .card {
+            background-color: #0F172A;
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+        }
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: #000000;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: #22D3EE;
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+        }
+        .glow-text {
+            text-shadow: 0 0 15px rgba(6, 182, 212, 0.5);
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
-    <header class="max-w-4xl mx-auto mb-12 flex flex-col md:flex-row justify-between items-center border-b border-[#1E293B] pb-8 gap-6">
+    <header class="max-w-4xl mx-auto mb-12 w-full flex flex-col md:flex-row justify-between items-center border-b border-[#1E293B] pb-8 gap-6">
         <div>
             <h1 class="text-5xl font-black tracking-tighter glow-text italic">STRATOS</h1>
             <p class="text-lg font-medium text-cyan-400/80 mt-1 uppercase tracking-[0.2em]">Automate the noise. Focus on the gold.</p>
         </div>
-        <div class="px-5 py-2 bg-cyan-950/30 border border-cyan-500/50 rounded-full text-cyan-400 text-sm font-bold tracking-widest">STRATOS ONLINE</div>
+        <div class="px-5 py-2 bg-cyan-950/30 border border-cyan-500/50 rounded-full text-cyan-400 text-sm font-bold tracking-widest">
+            STRATOS LIVE-V1
+        </div>
     </header>
 
-    <main class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-        <section class="card p-8">
+    <main class="max-w-4xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-8">
+        <section class="card p-8 flex flex-col">
             <h2 class="text-xl font-bold mb-6 text-white uppercase tracking-widest italic">1. Data Ingestion</h2>
-            <textarea id="user-context" class="w-full h-56 bg-slate-950 text-slate-200 border-2 border-slate-800 rounded-xl p-4 mb-6 focus:border-cyan-500 outline-none transition-all" placeholder="Colle ton agenda ou tes problèmes ici..."></textarea>
-            <button id="run-btn" class="btn-primary w-full py-4 text-lg rounded-xl hover:scale-[1.02] active:scale-95 transition-all">INITIALIZE ANALYSIS</button>
+            <textarea id="user-context"
+                class="w-full h-64 bg-slate-950 text-slate-200 border-2 border-slate-800 rounded-xl p-4 mb-6 outline-none transition-all resize-none"
+                placeholder="Colle ici tes emails, ton agenda ou tes chiffres Stripe..."></textarea>
+            <button id="run-btn" class="btn-primary w-full py-4 text-lg rounded-xl">
+                INITIALIZE ANALYSIS
+            </button>
         </section>
 
         <section class="card p-8 flex flex-col">
             <h2 class="text-xl font-bold mb-6 text-white uppercase tracking-widest italic">2. Strategy Output</h2>
-            <div id="ai-output" class="flex-1 text-slate-300 leading-relaxed bg-slate-950/50 p-6 rounded-xl border border-slate-800 mb-6 overflow-auto min-h-[200px]">Awaiting mission parameters...</div>
+            <div id="ai-output" class="flex-1 text-slate-300 leading-relaxed bg-slate-950/50 p-6 rounded-xl border border-slate-800 mb-6 overflow-auto min-h-[250px] whitespace-pre-wrap">Awaiting parameters...</div>
+            <button id="copy-btn" class="hidden w-full py-3 border-2 border-slate-700 text-slate-400 font-bold rounded-xl hover:text-cyan-400 hover:border-cyan-400 transition-all">
+                Copy Strategy
+            </button>
         </section>
     </main>
 
     <script type="module">
-        const API_KEY = "AIzaSyDqil6CQxk1UoEfj9rnr4ek7nM-Kn646vM"; 
+        const API_KEY = "AIzaSyDqil6CQxk1UoEfj9rnr4ek7nM-Kn646vM";
+
         const runBtn = document.getElementById('run-btn');
         const output = document.getElementById('ai-output');
         const contextInput = document.getElementById('user-context');
+        const copyBtn = document.getElementById('copy-btn');
 
         runBtn.addEventListener('click', async () => {
             const userText = contextInput.value.trim();
             if (!userText) {
-                output.innerText = "Veuillez entrer des données.";
+                output.innerText = "STRATOS requiert des données pour l'analyse.";
                 return;
             }
 
             runBtn.innerText = "STRATIZING...";
-            output.innerText = "Connexion aux satellites de STRATOS...";
+            runBtn.disabled = true;
+            output.innerText = "Connexion sécurisée vers STRATOS-Core...";
+            copyBtn.classList.add('hidden');
 
             try {
-                // Utilisation de la version stable 1.5-flash qui accepte ta clé
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-                
+                // CHANGEMENT ICI : URL v1 stable (Production)
+                const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: "Tu es STRATOS, un Shadow-Manager IA d'élite. Ton but est le profit et l'efficacité. Analyse ceci et donne 3 conseils brutaux et efficaces : " + userText }] }]
+                        contents: [{
+                            parts: [{ text: "Tu es STRATOS, un Shadow-Manager IA d'élite. Ton ton est direct et focalisé sur le profit. Analyse ces données et donne 3 points d'action prioritaires : " + userText }]
+                        }]
                     })
                 });
 
@@ -71,16 +116,24 @@
 
                 if (data.candidates && data.candidates[0].content) {
                     output.innerText = data.candidates[0].content.parts[0].text;
+                    copyBtn.classList.remove('hidden');
                 } else {
-                    output.innerText = "L'IA n'a pas pu générer de réponse. Vérifie ta clé API.";
+                    output.innerText = "Signal perdu. L'IA n'a pas pu traiter la demande.";
                 }
 
             } catch (e) {
                 console.error(e);
-                output.innerText = "ERREUR TECHNIQUE : " + e.message;
+                output.innerText = "ERREUR SYSTÈME : " + e.message + "\n\nConseil : Rafraîchis la page avec Ctrl+F5 ou essaie en Navigation Privée.";
             } finally {
                 runBtn.innerText = "INITIALIZE ANALYSIS";
+                runBtn.disabled = false;
             }
+        });
+
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(output.innerText);
+            copyBtn.innerText = "Copied!";
+            setTimeout(() => { copyBtn.innerText = "Copy Strategy"; }, 2000);
         });
     </script>
 </body>
