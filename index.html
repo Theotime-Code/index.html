@@ -9,7 +9,7 @@
         :root { --bg-color: #020617; --text-main: #F8FAFC; --accent-color: #06B6D4; --border-color: #1E293B; }
         body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Inter', sans-serif; }
         .card { background-color: #0F172A; border: 2px solid var(--border-color); border-radius: 16px; }
-        .btn-primary { background-color: var(--accent-color); color: #000000; font-weight: 900; }
+        .btn-primary { background-color: var(--accent-color); color: #000000; font-weight: 900; cursor: pointer; }
         .glow-text { text-shadow: 0 0 15px rgba(6, 182, 212, 0.5); }
     </style>
 </head>
@@ -19,20 +19,19 @@
             <h1 class="text-5xl font-black tracking-tighter glow-text italic">STRATOS</h1>
             <p class="text-lg font-medium text-cyan-400/80 mt-1 uppercase tracking-[0.2em]">Automate the noise. Focus on the gold.</p>
         </div>
-        <div class="px-5 py-2 bg-cyan-950/30 border border-cyan-500/50 rounded-full text-cyan-400 text-sm font-bold">STRATOS ACTIVE</div>
+        <div class="px-5 py-2 bg-cyan-950/30 border border-cyan-500/50 rounded-full text-cyan-400 text-sm font-bold tracking-widest">STRATOS ONLINE</div>
     </header>
 
     <main class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
         <section class="card p-8">
-            <h2 class="text-xl font-bold mb-6 text-white uppercase tracking-widest">1. Data Ingestion</h2>
-            <textarea id="user-context" class="w-full h-56 bg-slate-950 text-slate-200 border-2 border-slate-800 rounded-xl p-4 mb-6 focus:border-cyan-500 outline-none" placeholder="Colle tes infos ici (emails, calendrier, factures)..."></textarea>
-            <button id="run-btn" class="btn-primary w-full py-4 text-lg rounded-xl transition-all">INITIALIZE ANALYSIS</button>
+            <h2 class="text-xl font-bold mb-6 text-white uppercase tracking-widest italic">1. Data Ingestion</h2>
+            <textarea id="user-context" class="w-full h-56 bg-slate-950 text-slate-200 border-2 border-slate-800 rounded-xl p-4 mb-6 focus:border-cyan-500 outline-none transition-all" placeholder="Colle ton agenda ou tes problèmes ici..."></textarea>
+            <button id="run-btn" class="btn-primary w-full py-4 text-lg rounded-xl hover:scale-[1.02] active:scale-95 transition-all">INITIALIZE ANALYSIS</button>
         </section>
 
         <section class="card p-8 flex flex-col">
-            <h2 class="text-xl font-bold mb-6 text-white uppercase tracking-widest">2. Strategy Output</h2>
-            <div id="ai-output" class="flex-1 text-slate-300 leading-relaxed bg-slate-950/50 p-6 rounded-xl border border-slate-800 mb-6 overflow-auto">Awaiting mission parameters...</div>
-            <button id="copy-btn" class="hidden w-full py-3 border-2 border-slate-700 text-slate-400 font-bold rounded-xl">Copy Strategy</button>
+            <h2 class="text-xl font-bold mb-6 text-white uppercase tracking-widest italic">2. Strategy Output</h2>
+            <div id="ai-output" class="flex-1 text-slate-300 leading-relaxed bg-slate-950/50 p-6 rounded-xl border border-slate-800 mb-6 overflow-auto min-h-[200px]">Awaiting mission parameters...</div>
         </section>
     </main>
 
@@ -41,23 +40,46 @@
         const runBtn = document.getElementById('run-btn');
         const output = document.getElementById('ai-output');
         const contextInput = document.getElementById('user-context');
-        const copyBtn = document.getElementById('copy-btn');
 
         runBtn.addEventListener('click', async () => {
             const userText = contextInput.value.trim();
-            if (!userText) return;
-            output.innerText = "Stratos is connecting to satellites...";
+            if (!userText) {
+                output.innerText = "Veuillez entrer des données.";
+                return;
+            }
+
+            runBtn.innerText = "STRATIZING...";
+            output.innerText = "Connexion aux satellites de STRATOS...";
+
             try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                // Utilisation de la version stable 1.5-flash qui accepte ta clé
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+                
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: "Tu es STRATOS, un Shadow-Manager IA d'élite. Analyse ces données et donne 3 points d'action prioritaires pour maximiser le profit et gagner du temps : " + userText }] }] })
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: "Tu es STRATOS, un Shadow-Manager IA d'élite. Ton but est le profit et l'efficacité. Analyse ceci et donne 3 conseils brutaux et efficaces : " + userText }] }]
+                    })
                 });
+
                 const data = await response.json();
-                output.innerText = data.candidates[0].content.parts[0].text;
-                copyBtn.classList.remove('hidden');
+
+                if (data.error) {
+                    throw new Error(data.error.message);
+                }
+
+                if (data.candidates && data.candidates[0].content) {
+                    output.innerText = data.candidates[0].content.parts[0].text;
+                } else {
+                    output.innerText = "L'IA n'a pas pu générer de réponse. Vérifie ta clé API.";
+                }
+
             } catch (e) {
-                output.innerText = "Erreur : Essaye de lancer le fichier sur GitHub Pages (Sécurité navigateur).";
+                console.error(e);
+                output.innerText = "ERREUR TECHNIQUE : " + e.message;
+            } finally {
+                runBtn.innerText = "INITIALIZE ANALYSIS";
             }
         });
     </script>
